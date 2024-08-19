@@ -3,13 +3,14 @@ FROM node:22-alpine3.19 as builder
 
 LABEL stage="builder" \
     description="Stage to build the TypeScript application" \
-    maintainer="YourName <ahmad.b1995@gmail.com>"
+    maintainer="Ahmad Baghereslami <ahmad.b1995@gmail.com>"
 
-# Install build tools necessary for native modules
+# Install build tools necessary for native modules and libc6-compat
 RUN apk add --no-cache \
     python3 \
     make \
-    g++
+    g++ \
+    libc6-compat
 
 # Set the working directory
 WORKDIR /app
@@ -31,7 +32,10 @@ FROM node:22-alpine3.19 as runner
 
 LABEL stage="runner" \
     description="Stage to run the TypeScript application" \
-    maintainer="YourName <ahmad.b1995@gmail.com>"
+    maintainer="Ahmad Baghereslami <ahmad.b1995@gmail.com>"
+
+# Install libc6-compat to resolve glibc dependencies
+RUN apk --no-cache add libc6-compat
 
 # Set the working directory
 WORKDIR /app
