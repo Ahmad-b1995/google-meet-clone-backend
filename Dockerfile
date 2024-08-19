@@ -1,6 +1,13 @@
 # Stage 1: Build the TypeScript code
 FROM node:20.12.2 AS build
 
+# Install build tools necessary for native modules
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set the working directory
 WORKDIR /app
 
