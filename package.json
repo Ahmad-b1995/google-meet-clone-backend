@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "Minimalistic boilerplate to quick-start Node.js development in TypeScript.",
   "type": "module",
-  "engines": {
-    "node": ">= 20.9 < 21"
-  },
   "scripts": {
     "start": "node build/src/main.js",
     "clean": "rimraf coverage build tmp",
