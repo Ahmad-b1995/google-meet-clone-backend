@@ -1,5 +1,9 @@
 # Stage 1: Build the TypeScript code
-FROM node:22-alpine3.19 as build
+FROM node:22-alpine3.19 as builder
+
+LABEL stage="builder" \
+    description="Stage to build the TypeScript application" \
+    maintainer="YourName <ahmad.b1995@gmail.com>"
 
 # Install build tools necessary for native modules
 RUN apk add --no-cache \
@@ -23,14 +27,18 @@ COPY . .
 RUN yarn run build
 
 # Stage 2: Run the application
-FROM node:22-alpine3.19 
+FROM node:22-alpine3.19 as runner
+
+LABEL stage="runner" \
+    description="Stage to run the TypeScript application" \
+    maintainer="YourName <ahmad.b1995@gmail.com>"
 
 # Set the working directory
 WORKDIR /app
 
 # Copy only the built files from the build stage
-COPY --from=build /app/build ./build
-COPY --from=build /app/package*.json yarn.lock* ./
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package*.json yarn.lock* ./
 
 # Install only production dependencies using yarn with verbose output
 RUN yarn install --frozen-lockfile --production --verbose
