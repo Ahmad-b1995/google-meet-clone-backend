@@ -1,16 +1,17 @@
 # Stage 1: Build the TypeScript code
-FROM node:22-alpine3.19 as builder
+FROM node:22 as builder
 
 LABEL stage="builder" \
     description="Stage to build the TypeScript application" \
     maintainer="Ahmad Baghereslami <ahmad.b1995@gmail.com>"
 
-# Install build tools necessary for native modules and libc6-compat
-RUN apk add --no-cache \
+# Install build tools necessary for native modules
+RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
-    libc6-compat
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
@@ -28,14 +29,11 @@ COPY . .
 RUN yarn run build
 
 # Stage 2: Run the application
-FROM node:22-alpine3.19 as runner
+FROM node:22 as runner
 
 LABEL stage="runner" \
     description="Stage to run the TypeScript application" \
     maintainer="Ahmad Baghereslami <ahmad.b1995@gmail.com>"
-
-# Install libc6-compat to resolve glibc dependencies
-RUN apk --no-cache add libc6-compat
 
 # Set the working directory
 WORKDIR /app
