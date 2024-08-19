@@ -1,12 +1,11 @@
 # Stage 1: Build the TypeScript code
 FROM node:22-alpine3.19 as build
 
-RUN apk add --no-cache --virtual .gyp \
-    python \
+# Install build tools necessary for native modules
+RUN apk add --no-cache \
+    python3 \
     make \
-    g++ \
-    && npm install \
-    && apk del .gyp
+    g++
 
 # Set the working directory
 WORKDIR /app
