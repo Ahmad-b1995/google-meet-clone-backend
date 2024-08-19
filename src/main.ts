@@ -1,5 +1,4 @@
 import express, { Request, Response } from 'express';
-import bodyParser from 'body-parser';
 import * as webrtc from 'wrtc';
 import cors from 'cors';
 import http from 'http';
@@ -31,8 +30,6 @@ interface SDP {
 const rooms: Record<string, Room> = {};
 
 app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/hello', (_: Request, res: Response) => {
   res.send('Hello World!');
