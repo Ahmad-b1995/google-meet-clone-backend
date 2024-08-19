@@ -1,12 +1,12 @@
 # Stage 1: Build the TypeScript code
-FROM node:20.12.2 AS build
+FROM node:22-alpine3.19 as build
 
-# Install build tools necessary for native modules
-RUN apt-get update && apt-get install -y \
-    python3 \
+RUN apk add --no-cache --virtual .gyp \
+    python \
     make \
     g++ \
-    && rm -rf /var/lib/apt/lists/*
+    && npm install \
+    && apk del .gyp
 
 # Set the working directory
 WORKDIR /app
@@ -24,7 +24,7 @@ COPY . .
 RUN yarn run build
 
 # Stage 2: Run the application
-FROM node:20.12.2
+FROM node:22-alpine3.19 
 
 # Set the working directory
 WORKDIR /app
