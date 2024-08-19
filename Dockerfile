@@ -4,17 +4,17 @@ FROM node:20.12.2 AS build
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package.json and yarn.lock
+COPY package*.json yarn.lock* ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using yarn with verbose output
+RUN yarn install --frozen-lockfile --verbose
 
 # Copy the rest of the application code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN yarn run build
 
 # Stage 2: Run the application
 FROM node:20.12.2
@@ -24,10 +24,10 @@ WORKDIR /app
 
 # Copy only the built files from the build stage
 COPY --from=build /app/build ./build
-COPY --from=build /app/package*.json ./
+COPY --from=build /app/package*.json yarn.lock* ./
 
-# Install only production dependencies
-RUN npm install --only=production
+# Install only production dependencies using yarn with verbose output
+RUN yarn install --frozen-lockfile --production --verbose
 
 # Expose the port the app runs on
 EXPOSE 3000
