@@ -14,7 +14,6 @@ const io = new Server(server, {
   },
 });
 
-// Middleware to parse JSON
 app.use(express.json());
 
 interface Room {

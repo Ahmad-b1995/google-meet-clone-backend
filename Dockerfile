@@ -1,17 +1,20 @@
 # Stage 1: Build the TypeScript code
-FROM node:22 as builder
+FROM node:18 as builder
 
 LABEL stage="builder" \
     description="Stage to build the TypeScript application" \
     maintainer="Ahmad Baghereslami <ahmad.b1995@gmail.com>"
 
-# Install build tools necessary for native modules
+# Install build tools necessary for native modules and node-pre-gyp
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
+
+# Install node-pre-gyp globally
+RUN npm install -g node-pre-gyp
 
 # Set the working directory
 WORKDIR /app
