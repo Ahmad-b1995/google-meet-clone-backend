@@ -14,6 +14,9 @@ const io = new Server(server, {
   },
 });
 
+// Middleware to parse JSON
+app.use(express.json());
+
 interface Room {
   peers: webrtc.RTCPeerConnection[];
   students: string[];
@@ -42,7 +45,13 @@ app.post('/hello', (_: Request, res: Response) => {
 });
 
 app.post('/consumer', async (req: Request, res: Response) => {
-  const { roomId, sdp }: { roomId: string; sdp: SDP } = req.body;
+  const { roomId, sdp }: { roomId?: string; sdp?: SDP } = req.body;
+
+  // Handle missing roomId or sdp
+  if (!roomId || !sdp) {
+    return res.status(400).json({ error: 'roomId and sdp are required' });
+  }
+
   console.log(`POST /consumer: roomId=${roomId}, sdp=${JSON.stringify(sdp)}`);
 
   if (!rooms[roomId]) {
@@ -50,36 +59,47 @@ app.post('/consumer', async (req: Request, res: Response) => {
     return res.status(404).json({ error: 'Room not found' });
   }
 
-  const peer = new webrtc.RTCPeerConnection({
-    iceServers: [
-      {
-        urls: 'stun:stunprotocol.org',
-      },
-    ],
-  });
+  try {
+    const peer = new webrtc.RTCPeerConnection({
+      iceServers: [
+        {
+          urls: 'stun:stunprotocol.org',
+        },
+      ],
+    });
 
-  const desc = new webrtc.RTCSessionDescription(sdp);
-  await peer.setRemoteDescription(desc);
+    const desc = new webrtc.RTCSessionDescription(sdp);
+    await peer.setRemoteDescription(desc);
 
-  rooms[roomId].senderStream?.getTracks().forEach((track) => {
-    peer.addTrack(track, rooms[roomId].senderStream as MediaStream);
-  });
+    rooms[roomId].senderStream?.getTracks().forEach((track) => {
+      peer.addTrack(track, rooms[roomId].senderStream as MediaStream);
+    });
 
-  const answer = await peer.createAnswer();
-  await peer.setLocalDescription(answer);
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
 
-  const payload = {
-    sdp: peer.localDescription,
-  };
+    const payload = {
+      sdp: peer.localDescription,
+    };
 
-  console.log(`New consumer added to room ${roomId}:`);
-  io.to(roomId).emit('student-joined', { id: peer.id });
+    console.log(`New consumer added to room ${roomId}:`);
+    io.to(roomId).emit('student-joined', { id: peer.id });
 
-  res.json(payload);
+    res.json(payload);
+  } catch (error) {
+    console.error('Error in /consumer:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 app.post('/broadcast', async (req: Request, res: Response) => {
-  const { roomId, sdp }: { roomId: string; sdp: SDP } = req.body;
+  const { roomId, sdp }: { roomId?: string; sdp?: SDP } = req.body;
+
+  // Handle missing roomId or sdp
+  if (!roomId || !sdp) {
+    return res.status(400).json({ error: 'roomId and sdp are required' });
+  }
+
   console.log(`POST /broadcast: roomId=${roomId}`);
 
   if (!rooms[roomId]) {
@@ -92,28 +112,33 @@ app.post('/broadcast', async (req: Request, res: Response) => {
     console.log(`Created new room: ${roomId}`);
   }
 
-  const peer = new webrtc.RTCPeerConnection({
-    iceServers: [
-      {
-        urls: 'stun:stunprotocol.org',
-      },
-    ],
-  });
+  try {
+    const peer = new webrtc.RTCPeerConnection({
+      iceServers: [
+        {
+          urls: 'stun:stunprotocol.org',
+        },
+      ],
+    });
 
-  peer.ontrack = (e) => handleTrackEvent(e, peer, roomId);
+    peer.ontrack = (e) => handleTrackEvent(e, peer, roomId);
 
-  const desc = new webrtc.RTCSessionDescription(sdp);
-  await peer.setRemoteDescription(desc);
+    const desc = new webrtc.RTCSessionDescription(sdp);
+    await peer.setRemoteDescription(desc);
 
-  const answer = await peer.createAnswer();
-  await peer.setLocalDescription(answer);
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
 
-  const payload = {
-    sdp: peer.localDescription,
-  };
+    const payload = {
+      sdp: peer.localDescription,
+    };
 
-  console.log(`New broadcast in room ${roomId}:`);
-  res.json(payload);
+    console.log(`New broadcast in room ${roomId}:`);
+    res.json(payload);
+  } catch (error) {
+    console.error('Error in /broadcast:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 io.on('connection', (socket: Socket) => {
