@@ -32,7 +32,13 @@ const rooms: Record<string, Room> = {};
 app.use(cors());
 
 app.get('/hello', (_: Request, res: Response) => {
+  console.log('get hello');
   res.send('Hello World!');
+});
+
+app.post('/hello', (_: Request, res: Response) => {
+  console.log('post hello');
+  res.send('Hello World post!');
 });
 
 app.post('/consumer', async (req: Request, res: Response) => {
@@ -173,4 +179,4 @@ function handleTrackEvent(
   console.log(`Updated room ${roomId}:`, rooms[roomId]);
 }
 
-server.listen(3000, () => console.log('Server started on port 5000'));
+server.listen(3000, () => console.log('Server started on port 3000'));
