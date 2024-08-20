@@ -49,4 +49,4 @@ RUN yarn install --frozen-lockfile --production --verbose
 EXPOSE 3000
 
 # Command to start the app
-CMD ["node", "build/src/main.js"]
+CMD ["node", "/app/build/src/main.js"]
